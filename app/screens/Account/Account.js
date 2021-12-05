@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { UserLogged } from './UserLogged';
 import { UserGuest } from './UserGuest';
+import { Loading } from '../../components/Loading';
 
 const auth = getAuth(firebaseApp);
 
@@ -18,7 +18,7 @@ export const Account = () => {
         });
     }, [])
 
-    if(login === null) return <Text>Cargando...</Text>
+    if(login === null) return <Loading isVisible={true} text="Cargando..." />
 
     return login ? <UserLogged />:<UserGuest />;
 }
