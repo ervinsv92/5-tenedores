@@ -1,17 +1,33 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {Input, Icon, Button} from 'react-native-elements';
+import {validateEmail} from '../../utils/validations';
+const initForm = {
+    email:'',
+    password:'',
+    repeatPassword:''
+}
 
 const RegisterForm = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+    const [formData, setFormData] = useState(initForm);
+
+    const onSubmit = ()=>{
+
+    }
+
+    const onChange = (e, type)=>{
+        setFormData({...formData, [type]:e.nativeEvent.text});
+    }
 
     return (
         <View style={styles.formContainer}>
             <Input 
                 placeholder="Correo electrónico"
                 containerStyle={styles.inputForm}
+                onChange={e=> onChange(e, "email")}
                 rightIcon={
                     <Icon type="material-community" name="at" iconStyle={styles.iconRight}/>
                 }
@@ -22,6 +38,7 @@ const RegisterForm = () => {
                 containerStyle={styles.inputForm}
                 password={true}
                 secureTextEntry={!showPassword}
+                onChange={e=> onChange(e, "password")}
                 rightIcon={
                     <Icon 
                         type="material-community" 
@@ -38,6 +55,7 @@ const RegisterForm = () => {
                 containerStyle={styles.inputForm}
                 password={true}
                 secureTextEntry={!showRepeatPassword}
+                onChange={e=> onChange(e, "repeatPassword")}
                 rightIcon={
                     <Icon 
                         type="material-community" 
@@ -51,6 +69,7 @@ const RegisterForm = () => {
                 title="Unirse"
                 containerStyle={styles.btnContainerRegister}
                 buttonStyle={styles.btnRegister}
+                onPress={onSubmit}
             />
         </View>
     )
