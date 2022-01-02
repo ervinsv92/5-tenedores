@@ -3,6 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import {Input, Icon, Button} from 'react-native-elements';
 import {validateEmail} from '../../utils/validations';
 import { size , isEmpty} from 'lodash';
+import {firebaseApp} from '../../utils/firebase';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import {useNavigation} from "@react-navigation/native";
+const auth = getAuth(firebaseApp);
 
 const initForm = {
     email:'',
@@ -15,23 +19,33 @@ const RegisterForm = ({toastRef}) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
     const [formData, setFormData] = useState(initForm);
-
+    const navigation = useNavigation();
     const onSubmit = ()=>{
-        if(isEmpty(formData.email || isEmpty(formData.password) || isEmpty(formData.repeatPassword))){
+
+        console.log("form: ", formData)
+
+        if(isEmpty(formData.email.trim()) || isEmpty(formData.password.trim()) || isEmpty(formData.repeatPassword.trim())){
             toastRef.current.show("Todos los campos son obligatorios");
             return;
-        }else if(!validateEmail(formData.email)){
+        }else if(!validateEmail(formData.email.trim())){
             toastRef.current.show("El email no es correcto");
             return;
-        }else if(formData.password !== formData.repeatPassword){
+        }else if(formData.password.trim() !== formData.repeatPassword.trim()){
             toastRef.current.show("Las contraseñas deben ser iguales");
             return;
-        }else if(size(formData.password)<6){
+        }else if(size(formData.password.trim())<6){
             toastRef.current.show("La debe contener minimo 6 caracteres.");
             return;
         }
 
-
+        createUserWithEmailAndPassword(auth,formData.email.trim(), formData.password.trim())
+        .then(response=>{
+            console.log(response);
+            navigation.navigate('account');
+        })
+        .catch(err => {
+            toastRef.current.show("El email ya está en uso");
+        });
     }
 
     const onChange = (e, type)=>{
