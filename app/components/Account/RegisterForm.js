@@ -6,6 +6,7 @@ import { size , isEmpty} from 'lodash';
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import {useNavigation} from "@react-navigation/native";
+import Loading from '../Loading';
 const auth = getAuth(firebaseApp);
 
 const initForm = {
@@ -19,6 +20,7 @@ const RegisterForm = ({toastRef}) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
     const [formData, setFormData] = useState(initForm);
+    const [loading, setLoading] = useState(false);
     const navigation = useNavigation();
     const onSubmit = ()=>{
 
@@ -38,12 +40,14 @@ const RegisterForm = ({toastRef}) => {
             return;
         }
 
+        setLoading(true);
         createUserWithEmailAndPassword(auth,formData.email.trim(), formData.password.trim())
         .then(response=>{
-            console.log(response);
+            setLoading(false);
             navigation.navigate('account');
         })
         .catch(err => {
+            setLoading(false);
             toastRef.current.show("El email ya está en uso");
         });
     }
@@ -101,6 +105,7 @@ const RegisterForm = ({toastRef}) => {
                 buttonStyle={styles.btnRegister}
                 onPress={onSubmit}
             />
+            <Loading isVisible={loading} text="Creando cuenta"/>
         </View>
     )
 }
