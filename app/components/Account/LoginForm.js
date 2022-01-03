@@ -1,16 +1,26 @@
 import React, {useState} from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import {Input, Icon, Button} from 'react-native-elements';
+import { isEmpty } from 'lodash';
+import {useNavigation} from "@react-navigation/native";
+import {firebaseApp} from '../../utils/firebase';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { validateEmail } from '../../utils/validations';
+import Loading from '../Loading';
+
+const auth = getAuth(firebaseApp);
 
 const initForm = {
     email:'',
     password:''
 }
 
-const LoginForm = () => {
+const LoginForm = ({toastRef}) => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState(initForm);
+    const navigation = useNavigation();
+    const [loading, setLoading] = useState(false);
 
     const onChange = (e, type)=>{
         setFormData({
@@ -20,7 +30,23 @@ const LoginForm = () => {
     }
 
     const onSubmit = ()=>{
-        console.log(formData)
+        if(isEmpty(formData.email) || isEmpty(formData.email)){
+            toastRef.current.show('Todos los campos son requeridos');
+            return;
+        }else if(!validateEmail(formData.email)){
+            toastRef.current.show('El email es incorrrecto');
+            return;
+        }
+        setLoading(true);
+        signInWithEmailAndPassword(auth,formData.email, formData.password)
+        .then(res=>{
+            setLoading(false);
+            navigation.navigate('account');
+        })
+        .catch(err=>{
+            setLoading(false);
+            toastRef.current.show('Email o contraseña incorrecta');
+        })
     }
 
     return (
@@ -59,6 +85,7 @@ const LoginForm = () => {
                 buttonStyle={styles.btnLogin}
                 onPress={onSubmit}
             />
+            <Loading isVisible={loading} text="Iniciando sesión" />
         </View>
     )
 }
