@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import {Input, Icon, Button} from 'react-native-elements';
 import { isEmpty } from 'lodash';
 import {useNavigation} from "@react-navigation/native";
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { validateEmail } from '../../utils/validations';
-import Loading from '../Loading';
+import { Loading } from '../Loading';
 
 const auth = getAuth(firebaseApp);
 
@@ -30,15 +30,15 @@ const LoginForm = ({toastRef}) => {
     }
 
     const onSubmit = ()=>{
-        if(isEmpty(formData.email) || isEmpty(formData.email)){
+        if(isEmpty(formData.email.trim()) || isEmpty(formData.email.trim())){
             toastRef.current.show('Todos los campos son requeridos');
             return;
-        }else if(!validateEmail(formData.email)){
+        }else if(!validateEmail(formData.email.trim())){
             toastRef.current.show('El email es incorrrecto');
             return;
         }
         setLoading(true);
-        signInWithEmailAndPassword(auth,formData.email, formData.password)
+        signInWithEmailAndPassword(auth,formData.email.trim(), formData.password.trim())
         .then(res=>{
             setLoading(false);
             navigation.navigate('account');
@@ -85,6 +85,7 @@ const LoginForm = ({toastRef}) => {
                 buttonStyle={styles.btnLogin}
                 onPress={onSubmit}
             />
+
             <Loading isVisible={loading} text="Iniciando sesión" />
         </View>
     )

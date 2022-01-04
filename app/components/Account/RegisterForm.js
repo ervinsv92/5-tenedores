@@ -6,7 +6,8 @@ import { size , isEmpty} from 'lodash';
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import {useNavigation} from "@react-navigation/native";
-import Loading from '../Loading';
+import { Loading } from '../Loading';
+
 const auth = getAuth(firebaseApp);
 
 const initForm = {
