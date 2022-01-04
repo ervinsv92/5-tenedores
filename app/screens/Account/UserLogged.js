@@ -6,6 +6,7 @@ import {firebaseApp} from '../../utils/firebase';
 import { getAuth, signOut } from "firebase/auth";
 import { Loading } from '../../components/Loading';
 import InfoUser from '../../components/Account/InfoUser';
+import AccountOptions from '../../components/Account/AccountOptions';
 const auth = getAuth(firebaseApp);
 
 export const UserLogged = () => {
@@ -13,13 +14,16 @@ export const UserLogged = () => {
     const [loading, setLoading] = useState(false);
     const [loadingText, setLoadingText] = useState("");
     const [userInfo, setUserInfo] = useState(null);
+    const [reloadUserInfo, setReloadUserInfo] = useState(false);
+
 
     useEffect(() => {
         (async ()=>{
             const user = await auth.currentUser;
             setUserInfo(user);
         })();
-    }, [])
+        setReloadUserInfo(false);
+    }, [reloadUserInfo])
 
     return (
         <View style={styles.viewUserInfo}>
@@ -29,7 +33,7 @@ export const UserLogged = () => {
                             setLoading={setLoading}
                             setLoadingText={setLoadingText}
                          />}
-            <Text>AccountOptions</Text>
+            <AccountOptions userInfo={userInfo} toastRef={toastRef} setReloadUserInfo={setReloadUserInfo} />
             <Button 
                 title='Cerrar sesión' 
                 buttonStyle={styles.btnCloseSession}
