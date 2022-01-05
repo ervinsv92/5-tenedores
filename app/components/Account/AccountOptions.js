@@ -1,9 +1,11 @@
 import { map } from 'lodash';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import Modal from '../Modal';
 import ChangeDisplayNameForm from './ChangeDisplayNameForm';
+import ChangeEmailForm from './ChangeEmailForm';
+import ChangePasswordForm from './ChangePasswordForm';
 
 
 const AccountOptions = ({userInfo, toastRef, setReloadUserInfo}) => {
@@ -24,11 +26,22 @@ const AccountOptions = ({userInfo, toastRef, setReloadUserInfo}) => {
                 setShowModal(true);
                 break;
             case "email":
-                setRenderComponent(<Text>Cambiando email</Text>);
+                setRenderComponent(
+                    <ChangeEmailForm 
+                        email={userInfo.email}
+                        setShowModal={setShowModal}
+                        toastRef={toastRef}
+                        setReloadUserInfo={setReloadUserInfo}
+                    />);
                 setShowModal(true);
                 break;
             case "password":
-                setRenderComponent(<Text>Cambiando password</Text>);
+                setRenderComponent(
+                    <ChangePasswordForm
+                        setShowModal={setShowModal}
+                        toastRef={toastRef}
+                    />
+                );
                 setShowModal(true);
                 break;
             default:
