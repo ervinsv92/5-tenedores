@@ -9,9 +9,6 @@ import * as ImagePicker from "expo-image-picker";
 
 const storage = getStorage(firebaseApp);
 const auth = getAuth(firebaseApp);
-//console.log(storage)
-//var storageRef = firebaseApp.storage().ref();
-
 
 const InfoUser = ({userInfo, toastRef, setLoading, setLoadingText}) => {
     const {uid, photoURL, displayName, email} = userInfo;

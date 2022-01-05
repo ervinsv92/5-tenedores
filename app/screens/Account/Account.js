@@ -13,7 +13,6 @@ export const Account = () => {
 
     useEffect(() => {
         auth.onAuthStateChanged((user)=>{
-            console.log("Usuario", user)
             !user?setLogin(false):setLogin(true);
         });
     }, [])
