@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, Alert, Dimensions } from 'react-native';
 import {Icon, Avatar, Image, Input, Button} from 'react-native-elements';
 import * as ImagePicker from "expo-image-picker";
+import Modal from '../Modal';
+import * as Location from 'expo-location';
+import MapView from 'react-native-maps';
 
 const widthScreen = Dimensions.get("window").width;
 
@@ -11,6 +14,7 @@ const AddRestaurantForm = ({toastRef, setIsLoading,navigation}) => {
     const [restaurantAdress, setRestaurantAdress] = useState('');
     const [restaurantDescription, setRestaurantDescription] = useState('');
     const [imageSelected, setImageSelected] = useState([]);
+    const [isVisibleMap, setIsVisibleMap] = useState(false);
 
     const addRestaurant = async ()=>{
         
@@ -24,6 +28,7 @@ const AddRestaurantForm = ({toastRef, setIsLoading,navigation}) => {
                 setRestaurantName={setRestaurantName}
                 setRestaurantAdress={setRestaurantAdress}
                 setRestaurantDescription={setRestaurantDescription}
+                setIsVisibleMap={setIsVisibleMap}
             />
             <UploadImage toastRef={toastRef} setImageSelected={setImageSelected} imageSelected={imageSelected}/>
             <Button 
@@ -31,11 +36,12 @@ const AddRestaurantForm = ({toastRef, setIsLoading,navigation}) => {
                 onPress={addRestaurant}
                 buttonStyle={styles.btnAddRestaurant}
             />
+            <Map isVisibleMap={isVisibleMap} setIsVisibleMap={setIsVisibleMap} toastRef={toastRef} />
         </ScrollView>
     )
 }
 
-const FormAdd = ({setRestaurantName, setRestaurantAdress, setRestaurantDescription})=>{
+const FormAdd = ({setRestaurantName, setRestaurantAdress, setRestaurantDescription, setIsVisibleMap})=>{
     return (
         <View style={styles.viewForm}>
             <Input 
@@ -48,6 +54,12 @@ const FormAdd = ({setRestaurantName, setRestaurantAdress, setRestaurantDescripti
                 placeholder='Dirección'
                 containerStyle={styles.input}
                 onChange={e => setRestaurantAdress(e.nativeEvent.text)}
+                rightIcon={{
+                    type:'material-community',
+                    name:'google-maps',
+                    color:'#c2c2c2',
+                    onPress:() => setIsVisibleMap(true)
+                }}
             />
 
             <Input 
@@ -58,6 +70,56 @@ const FormAdd = ({setRestaurantName, setRestaurantAdress, setRestaurantDescripti
                 onChange={e => setRestaurantDescription(e.nativeEvent.text)}
             />
         </View>
+    );
+}
+
+const Map= ({isVisibleMap, setIsVisibleMap, toastRef})=>{
+    const [location, setLocation] = useState(null);
+    useEffect(() => {
+        (async ()=>{
+            try {
+                let { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    toastRef.current.show('El permiso para acceder a la localización ha sido denegado por el usuario', 3000);
+                return;
+                }
+
+                const loc = await Location.getCurrentPositionAsync();
+                setLocation({
+                    latitude:loc.coords.latitude,
+                    longitude:loc.coords.longitude,
+                    latitudeDelta:0.001,
+                    longitudeDelta:0.001
+                });
+                console.log(loc)
+            } catch (error) {
+                
+            }
+            
+        })()
+    }, []);
+
+    return (
+        <Modal isVisible={isVisibleMap} setIsVisible={setIsVisibleMap}>
+            <View>
+                {location &&
+                    <MapView 
+                        style={styles.mapStyle}
+                        initialRegion={location}
+                        showsUserLocation={true}
+                        onRegionChange={(region)=> setLocation(region)}
+                    >
+                        <MapView.Marker 
+                            coordinate={{
+                                latitude:location.latitude,
+                                longitude:location.longitude
+                            }}
+                            draggable
+                        />
+                    </MapView>
+                }
+            </View>
+        </Modal>
     );
 }
 
@@ -193,5 +255,9 @@ const styles = StyleSheet.create({
         alignItems:'center',
         height:200,
         marginBottom:20
+    },
+    mapStyle:{
+        width:'100%',
+        height:550
     }
 });
