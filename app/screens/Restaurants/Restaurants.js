@@ -3,13 +3,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Icon } from 'react-native-elements';
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth} from 'firebase/auth';
-import { launchImageLibraryAsync } from 'expo-image-picker';
+import { getFirestore, getDocs, collection, query} from 'firebase/firestore';
 const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
 
 export const Restaurants = ({navigation}) => {
-
     const [user, setUser] = useState(null);
-
+    const [restaurants, setRestaurants] = useState([]);
+    const [totalRestaurants, setTotalRestaurants] = useState(0);
 
     useEffect(() => {
         auth.onAuthStateChanged((userInfo)=>{
@@ -17,10 +18,28 @@ export const Restaurants = ({navigation}) => {
         });
     }, []);
 
+    useEffect(() => {
+
+        (async ()=>{
+            const q = query(collection(db, "restaurants"));
+            const querySnapshot = await getDocs(q);
+            let rest = [];
+            querySnapshot.forEach((doc) => {
+                // doc.data() is never undefined for query doc snapshots
+                console.log(doc.id, " => ", doc.data());
+                rest.push({
+                    id:doc.id,
+                    ...doc.data()
+                })
+            });
+            setTotalRestaurants(rest.length);
+            setRestaurants(rest);
+        })()
+    }, [])
+
     return (
         <View style={styles.viewBody}>
             <Text>Restaurants</Text>
-
             {
                 user && 
                 <Icon 
@@ -32,8 +51,6 @@ export const Restaurants = ({navigation}) => {
                     onPress={()=> navigation.navigate('add-restaurant')}
                 />
             }
-
-            
         </View>
     )
 }
