@@ -4,6 +4,7 @@ import { Icon } from 'react-native-elements';
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth} from 'firebase/auth';
 import { getFirestore, getDocs, collection, query, orderBy, limit} from 'firebase/firestore';
+import ListRestaurants from '../../components/Restaurants/ListRestaurants';
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
@@ -28,7 +29,7 @@ export const Restaurants = ({navigation}) => {
             let rest = [];
             querySnapshot.forEach((doc) => {
                 // doc.data() is never undefined for query doc snapshots
-                console.log(doc.id, " => ", doc.data());
+                //console.log(doc.id, " => ", doc.data());
                 rest.push({
                     id:doc.id,
                     ...doc.data()
@@ -42,7 +43,7 @@ export const Restaurants = ({navigation}) => {
 
     return (
         <View style={styles.viewBody}>
-            <Text>Restaurants</Text>
+            <ListRestaurants restaurants={restaurants}/>
             {
                 user && 
                 <Icon 
