@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Icon } from 'react-native-elements';
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth} from 'firebase/auth';
-import { getFirestore, getDocs, collection, query} from 'firebase/firestore';
+import { getFirestore, getDocs, collection, query, orderBy, limit} from 'firebase/firestore';
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
@@ -11,6 +11,8 @@ export const Restaurants = ({navigation}) => {
     const [user, setUser] = useState(null);
     const [restaurants, setRestaurants] = useState([]);
     const [totalRestaurants, setTotalRestaurants] = useState(0);
+    const [startRestaurant, setStartRestaurant] = useState(null);
+    const LIMIT_RESTAURANTS = 7;
 
     useEffect(() => {
         auth.onAuthStateChanged((userInfo)=>{
@@ -21,7 +23,7 @@ export const Restaurants = ({navigation}) => {
     useEffect(() => {
 
         (async ()=>{
-            const q = query(collection(db, "restaurants"));
+            const q = query(collection(db, "restaurants"), orderBy('createAt'), limit(10));
             const querySnapshot = await getDocs(q);
             let rest = [];
             querySnapshot.forEach((doc) => {
@@ -34,6 +36,7 @@ export const Restaurants = ({navigation}) => {
             });
             setTotalRestaurants(rest.length);
             setRestaurants(rest);
+            setStartRestaurant(rest.length-1);
         })()
     }, [])
 
