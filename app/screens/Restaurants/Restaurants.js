@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Icon } from 'react-native-elements';
 import {firebaseApp} from '../../utils/firebase';
 import { getAuth} from 'firebase/auth';
-import { getFirestore, getDocs, collection, query, orderBy, limit} from 'firebase/firestore';
+import { getFirestore, getDocs, collection, query, orderBy, limit, startAfter} from 'firebase/firestore';
 import ListRestaurants from '../../components/Restaurants/ListRestaurants';
+import { useFocusEffect } from '@react-navigation/native';
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
@@ -13,6 +14,7 @@ export const Restaurants = ({navigation}) => {
     const [restaurants, setRestaurants] = useState([]);
     const [totalRestaurants, setTotalRestaurants] = useState(0);
     const [startRestaurant, setStartRestaurant] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const LIMIT_RESTAURANTS = 7;
 
     useEffect(() => {
@@ -21,29 +23,55 @@ export const Restaurants = ({navigation}) => {
         });
     }, []);
 
-    useEffect(() => {
+    //Se ejecuta cuando se le hace focus a la pantalla
+    useFocusEffect(
+        useCallback(
+            () => {
+                (async ()=>{
+                    const q = query(collection(db, "restaurants"), orderBy('createAt'), limit(LIMIT_RESTAURANTS));
+                    const querySnapshot = await getDocs(q);
+                    let rest = [];
+                    querySnapshot.forEach((doc) => {
+                        rest.push({
+                            id:doc.id,
+                            ...doc.data()
+                        })
+                    });
+                    setTotalRestaurants(rest.length);
+                    setRestaurants(rest);
+                    setStartRestaurant(rest[rest.length-1]);
+                    console.log("total restaurants: ", totalRestaurants)
+                    console.log("start rest: ", startRestaurant)
+                })()
+            },
+            [],
+        )
+    );
 
-        (async ()=>{
-            const q = query(collection(db, "restaurants"), orderBy('createAt'), limit(10));
-            const querySnapshot = await getDocs(q);
-            let rest = [];
-            querySnapshot.forEach((doc) => {
-                // doc.data() is never undefined for query doc snapshots
-                //console.log(doc.id, " => ", doc.data());
-                rest.push({
-                    id:doc.id,
-                    ...doc.data()
-                })
-            });
-            setTotalRestaurants(rest.length);
-            setRestaurants(rest);
-            setStartRestaurant(rest.length-1);
-        })()
-    }, [])
+    const handleLoadMore = async ()=>{
+        restaurants.length < totalRestaurants && setLoading(true);
+
+        const q = query(collection(db, "restaurants"), orderBy('createAt'), startAfter(startRestaurant.createAt), limit(LIMIT_RESTAURANTS));
+        const querySnapshot = await getDocs(q);
+        let rest = [];
+        querySnapshot.forEach((doc) => {
+            rest.push({
+                id:doc.id,
+                ...doc.data()
+            })
+        });
+
+        if(rest.length > 0){
+            setStartRestaurant(rest[rest.length-1]);
+        }else{
+            setIsLoading(false);
+        }
+        setRestaurants([...restaurants, ...rest]);
+    }
 
     return (
         <View style={styles.viewBody}>
-            <ListRestaurants restaurants={restaurants}/>
+            <ListRestaurants restaurants={restaurants} handleLoadMore={handleLoadMore} isLoading={isLoading}/>
             {
                 user && 
                 <Icon 

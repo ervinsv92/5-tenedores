@@ -2,7 +2,7 @@ import React from 'react'
 import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Image } from 'react-native-elements';
 
-const ListRestaurants = ({restaurants = []}) => {
+const ListRestaurants = ({restaurants = [], handleLoadMore, isLoading}) => {
     return (
         <View>
             {restaurants.length > 0 
@@ -12,6 +12,9 @@ const ListRestaurants = ({restaurants = []}) => {
                         data={restaurants}
                         renderItem = {(restaurant)=> <Restaurant restaurant={restaurant}/>}
                         keyExtractor={item => item.id}
+                        onEndReachedThreshold={0.5}
+                        onEndReached={handleLoadMore}
+                        ListFooterComponent={<FooterList isLoading={isLoading}/>}
                     />
 
                     
@@ -24,6 +27,22 @@ const ListRestaurants = ({restaurants = []}) => {
             }
         </View>
     )
+}
+
+const FooterList = ({isLoading})=>{
+    if(isLoading){
+        return (
+            <View style={styles.loaderRestaurants}>
+                <ActivityIndicator size="large"/>
+            </View>
+        )
+    }else{
+        return (
+            <View style={styles.notFoundRestaurant}> 
+                <Text>No quedan restaurantes por cargar</Text>
+            </View>
+        )
+    }
 }
 
 const Restaurant = ({restaurant})=>{
@@ -92,6 +111,11 @@ const styles = StyleSheet.create({
     restaurantDescription:{
         paddingTop:2,
         color:'grey',
-        width=300
+        width:300
+    },
+    notFoundRestaurant:{
+        marginTop:10,
+        marginBottom:20,
+        alignItems:'center'
     }
 });
