@@ -28,7 +28,7 @@ export const Restaurants = ({navigation}) => {
         useCallback(
             () => {
                 (async ()=>{
-                    const q = query(collection(db, "restaurants"), orderBy('createAt'), limit(LIMIT_RESTAURANTS));
+                    const q = query(collection(db, "restaurants"), orderBy('createAt', 'desc'), limit(LIMIT_RESTAURANTS));
                     const querySnapshot = await getDocs(q);
                     let rest = [];
                     querySnapshot.forEach((doc) => {
@@ -51,7 +51,7 @@ export const Restaurants = ({navigation}) => {
     const handleLoadMore = async ()=>{
         restaurants.length < totalRestaurants && setLoading(true);
 
-        const q = query(collection(db, "restaurants"), orderBy('createAt'), startAfter(startRestaurant.createAt), limit(LIMIT_RESTAURANTS));
+        const q = query(collection(db, "restaurants"), orderBy('createAt','desc'), startAfter(startRestaurant.createAt), limit(LIMIT_RESTAURANTS));
         const querySnapshot = await getDocs(q);
         let rest = [];
         querySnapshot.forEach((doc) => {
