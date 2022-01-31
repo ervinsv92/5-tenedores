@@ -6,6 +6,7 @@ import {Loading} from '../../components/Loading';
 import CarouselImages from '../../components/Carousel';
 import { ListItem, Rating } from 'react-native-elements';
 import Map from '../../components/Map';
+import ListReviews from '../../components/Restaurants/ListReviews';
 
 const db = getFirestore(firebaseApp);
 const screenWidth= Dimensions.get("window").width;
@@ -48,6 +49,7 @@ const Restaurant = ({navigation, route}) => {
             />
             <TitleRestaurant name={name} description={restaurant.description} rating={rating}/>
             <RestaurantInfo location={restaurant.location} name={name} address={restaurant.address} />
+            <ListReviews navigation={navigation} idRestaurant={restaurant.id} setRating={setRating} />
         </ScrollView>
     )
 }
