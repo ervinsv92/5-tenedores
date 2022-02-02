@@ -24,6 +24,7 @@ const ListReviews = ({navigation, idRestaurant, setRating}) => {
                     name:'square-edit-outline',
                     color:'#00a680'
                 }}
+                onPress={()=>navigation.navigate("add-review-restaurant", {idRestaurant})}
             />
           ):
           (
