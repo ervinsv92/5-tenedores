@@ -1,12 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native';
 import React, { useState, useRef } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { AirbnbRating, Button, Input } from 'react-native-elements';
 import Toast from 'react-native-easy-toast';
-import Loading from '';
 import {firebaseApp} from '../../utils/firebase';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
-//import { getAuth  } from "firebase/auth";
-//const auth = getAuth(firebaseApp);
+import { getAuth  } from "firebase/auth";
+import { Loading } from '../../components/Loading';
+const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
 const AddReviewRestaurant = ({navigation, route}) => {
@@ -14,7 +14,7 @@ const AddReviewRestaurant = ({navigation, route}) => {
     const [rating, setRating] = useState(null);
     const [title, setTitle] = useState('');
     const [review, setReview] = useState('');
-    const [idLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const toastRef = useRef();
 
     const addReview = ()=>{
@@ -30,7 +30,28 @@ const AddReviewRestaurant = ({navigation, route}) => {
         }
 
         setIsLoading(true);
-        
+        const user = auth.currentUser;
+        const payload = {
+            idUser: user.uid,
+            avatarUser:user.photoURL,
+            idRestaurant,
+            title,
+            review,
+            rating,
+            createAt:new Date()
+        }
+        try {
+            const docRef = addDoc(collection(db,'reviews'), payload);
+            if(docRef){
+                
+            }else{
+
+            }
+            setIsLoading(false);
+        } catch (error) {
+            console.log(error)   
+            toastRef.current.show("Error al enviar la review")
+        }
     }
 
     return (
@@ -69,8 +90,6 @@ const AddReviewRestaurant = ({navigation, route}) => {
     );
 };
 
-export default AddReviewRestaurant;
-
 const styles = StyleSheet.create({
     viewBody:{
         flex:1
@@ -105,3 +124,5 @@ const styles = StyleSheet.create({
         backgroundColor:'#00a680'
     }
 });
+
+export default AddReviewRestaurant;
