@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AirbnbRating, Button, Input } from 'react-native-elements';
 import Toast from 'react-native-easy-toast';
 import {firebaseApp} from '../../utils/firebase';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { getAuth  } from "firebase/auth";
 import { Loading } from '../../components/Loading';
 const auth = getAuth(firebaseApp);
@@ -16,6 +16,33 @@ const AddReviewRestaurant = ({navigation, route}) => {
     const [review, setReview] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const toastRef = useRef();
+
+    const updateRestaurant = async ()=>{
+        try {
+            const docRef = doc(db, "restaurants", idRestaurant);
+            const docSnap = await getDoc(docRef);
+            let restaurantData = null;
+
+            if(docSnap.exists()){
+                const data = docSnap.data();
+                data.id = idRestaurant;
+                restaurantData = data
+                const ratingTotal = restaurantData.ratingTotal + rating;
+                const quantityVoting = restaurantData.quantityVoting +1;
+                const ratingResult = ratingTotal / quantityVoting;
+
+                await updateDoc(docRef, {
+                    rating:ratingResult,
+                    ratingTotal,
+                    quantityVoting
+                })
+                setIsLoading(false)
+                navigation.goBack();
+            }    
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     const addReview = ()=>{
         if(!rating){
@@ -47,7 +74,7 @@ const AddReviewRestaurant = ({navigation, route}) => {
             }else{
 
             }
-            setIsLoading(false);
+            updateRestaurant();
         } catch (error) {
             console.log(error)   
             toastRef.current.show("Error al enviar la review")

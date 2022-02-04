@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { StyleSheet, Text, View, ScrollView, Dimensions } from 'react-native'
 import { getFirestore, getDoc, doc} from 'firebase/firestore';
 import {firebaseApp} from '../../utils/firebase';
@@ -7,6 +7,7 @@ import CarouselImages from '../../components/Carousel';
 import { ListItem, Rating } from 'react-native-elements';
 import Map from '../../components/Map';
 import ListReviews from '../../components/Restaurants/ListReviews';
+import { useFocusEffect } from '@react-navigation/native';
 
 const db = getFirestore(firebaseApp);
 const screenWidth= Dimensions.get("window").width;
@@ -17,24 +18,27 @@ const Restaurant = ({navigation, route}) => {
     const [rating, setRating] = useState(0);
     navigation.setOptions({title:name});
 
-    useEffect(() => {
-        (async ()=>{
-            try {
-                const docRef = doc(db, "restaurants", id);
-                const docSnap = await getDoc(docRef);
-
-                if(docSnap.exists()){
-                    const data = docSnap.data();
-                    data.id = id;
-                    setRestaurant(data);
-                    setRating(data.rating);
-                }    
-            } catch (error) {
-                console.log(error)
-            }
-            
-        })()
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            (async ()=>{
+                try {
+                    const docRef = doc(db, "restaurants", id);
+                    const docSnap = await getDoc(docRef);
+    
+                    if(docSnap.exists()){
+                        const data = docSnap.data();
+                        data.id = id;
+                        setRestaurant(data);
+                        setRating(data.rating);
+                    }    
+                } catch (error) {
+                    console.log(error)
+                }
+                
+            })()
+        }, [])
+    );
+    
 
    if (!restaurant) {
     return <Loading isVisible={true} text="Cargando..." />;
