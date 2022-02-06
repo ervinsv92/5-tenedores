@@ -53,7 +53,7 @@ const Restaurant = ({navigation, route}) => {
             />
             <TitleRestaurant name={name} description={restaurant.description} rating={rating}/>
             <RestaurantInfo location={restaurant.location} name={name} address={restaurant.address} />
-            <ListReviews navigation={navigation} idRestaurant={restaurant.id} setRating={setRating} />
+            <ListReviews navigation={navigation} idRestaurant={restaurant.id} />
         </ScrollView>
     )
 }
