@@ -1,14 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { StyleSheet, Text, View, ScrollView, Dimensions } from 'react-native'
-import { getFirestore, getDoc, doc} from 'firebase/firestore';
+import { getFirestore, getDoc, doc, addDoc, collection, where, query, getDocs, deleteDoc} from 'firebase/firestore';
 import {firebaseApp} from '../../utils/firebase';
+import { getAuth} from 'firebase/auth';
 import {Loading} from '../../components/Loading';
 import CarouselImages from '../../components/Carousel';
-import { ListItem, Rating } from 'react-native-elements';
+import { Icon, ListItem, Rating } from 'react-native-elements';
 import Map from '../../components/Map';
 import ListReviews from '../../components/Restaurants/ListReviews';
 import { useFocusEffect } from '@react-navigation/native';
+import Toast from 'react-native-easy-toast';
+import { querystring } from '@firebase/util';
 
+const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const screenWidth= Dimensions.get("window").width;
 
@@ -16,6 +20,14 @@ const Restaurant = ({navigation, route}) => {
     const {id, name} = route.params;
     const [restaurant, setRestaurant] = useState(null);
     const [rating, setRating] = useState(0);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [userLogged, setUserLogged] = useState(false);
+    const toastRef = useRef();
+
+    auth.onAuthStateChanged((user)=>{
+        user ? setUserLogged(true):setUserLogged(false)
+    });
+
     navigation.setOptions({title:name});
 
     useFocusEffect(
@@ -38,7 +50,64 @@ const Restaurant = ({navigation, route}) => {
             })()
         }, [])
     );
+
+    useEffect(() => {
+        if(userLogged && restaurant){
+            (async ()=>{
+                try {
+                    const q = query(collection(db, "favorites"), where('idRestaurant', '==', restaurant.id),  where('idUser', '==', auth.currentUser.uid));
+                    const querySnapshot = await getDocs(q);
+                    if(querySnapshot.empty){
+                        setIsFavorite(false);
+                    }else{
+                        setIsFavorite(true);
+                    }   
+                } catch (error) {
+                    console.log("EEEError: ", error)    
+                }
+            })() 
+        }
+    }, [userLogged, restaurant]);
     
+    
+    const addFavorite = async ()=>{
+        if(!userLogged){
+            toastRef.current.show("Para usar el sistema de favoritos, tienes que estar logueado")
+            return;
+        }
+
+        const payload = {
+            idUser:auth.currentUser.uid,
+            idRestaurant:restaurant.id
+        }
+
+        try {
+            const docRef = await addDoc(collection(db, 'favorites'), payload);
+            setIsFavorite(true);
+            toastRef.current.show("Restaurante añadido a favoritos.")
+            console.log("registrado")
+        } catch (error) {
+            toastRef.current.show("Error al añadir el restaurante a favoritos")
+            console.log(error)
+        }
+    }
+
+    const removeFavorite = async ()=>{
+        try {
+            const q = query(collection(db, "favorites"), where('idRestaurant', '==', restaurant.id),  where('idUser', '==', auth.currentUser.uid));
+            const querySnapshot = await getDocs(q);
+            if(!querySnapshot.empty){
+                querySnapshot.forEach(async (favorite)=>{
+                    await deleteDoc(doc(db, "favorites", favorite.id));
+                    setIsFavorite(false)
+                })
+            }   
+            toastRef.current.show("Restaurante quitado de favoritos")
+        } catch (error) {
+            toastRef.current.show("Error al quitar el restaurante de favoritos")
+            console.log("Error: ", error)
+        }
+    }
 
    if (!restaurant) {
     return <Loading isVisible={true} text="Cargando..." />;
@@ -46,6 +115,16 @@ const Restaurant = ({navigation, route}) => {
 
     return (
         <ScrollView vertical style={styles.viewBody}>
+            <View style={styles.viewFavorite}>
+                <Icon 
+                    type="material-community"
+                    name={isFavorite? "heart":"heart-outline"}
+                    onPress={isFavorite?removeFavorite:addFavorite}
+                    color={isFavorite? "#f00":"#000"}
+                    size={35}
+                    underlayColor="transparent"
+                />
+            </View>
             <CarouselImages 
                 arrayImages={restaurant.images}
                 height={250}
@@ -54,6 +133,8 @@ const Restaurant = ({navigation, route}) => {
             <TitleRestaurant name={name} description={restaurant.description} rating={rating}/>
             <RestaurantInfo location={restaurant.location} name={name} address={restaurant.address} />
             <ListReviews navigation={navigation} idRestaurant={restaurant.id} />
+            <Toast ref={toastRef} position="center" opacity={0.9}/>
+            
         </ScrollView>
     )
 }
@@ -156,5 +237,15 @@ const styles = StyleSheet.create({
     containerListItem:{
         borderBottomColor:'#d8d8d8',
         borderBottomWidth:1
+    },
+    viewFavorite:{
+        position:'absolute',
+        top:0,
+        right:0,
+        zIndex:2,
+        backgroundColor:"#fff",
+        borderBottomLeftRadius:100,
+        padding:5,
+        paddingLeft:15
     }
 })
