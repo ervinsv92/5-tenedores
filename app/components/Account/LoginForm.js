@@ -22,6 +22,10 @@ const LoginForm = ({toastRef}) => {
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
 
+    auth.onAuthStateChanged((user)=>{
+        user && navigation.navigate("account");
+    })
+
     const onChange = (e, type)=>{
         setFormData({
             ...formData,
@@ -41,7 +45,7 @@ const LoginForm = ({toastRef}) => {
         signInWithEmailAndPassword(auth,formData.email.trim(), formData.password.trim())
         .then(res=>{
             setLoading(false);
-            navigation.navigate('account');
+            navigation.goBack();
         })
         .catch(err=>{
             setLoading(false);

@@ -1,17 +1,18 @@
 import React, {useState, useRef, useCallback} from 'react';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import {Image, Icon, Botton} from 'react-native-elements';
+import {Image, Icon, Botton, Button} from 'react-native-elements';
 import {useFocusEffect} from '@react-navigation/native';
 import {firebaseApp} from '../utils/firebase';
 import { getAuth} from 'firebase/auth';
 import { getFirestore, getDocs, collection, query, where, doc, getDoc, orderBy, limit, startAfter} from 'firebase/firestore';
+import Loading from '../components/Loading';
 
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
-export const Favorites = () => {
+export const Favorites = ({navigation}) => {
 
-    const [restaurants, setRestaurants] = useState(null);
+    const [restaurants, setRestaurants] = useState([]);
     const [userLogged, setUserLogged] = useState(false);
 
     auth.onAuthStateChanged((user)=>{
@@ -74,9 +75,44 @@ export const Favorites = () => {
         return restaurants
     }
 
+    if(!userLogged){
+        return <UserNoLogged navigation={navigation}/>
+    }
+
+    if(!restaurants){
+        return <Loading isVisible={true} text="Cargando restaurantes"/>
+    }else if(restaurants.length === 0){
+        return <NotFoundRestaurants />
+    }
+
     return (
         <View>
             <Text>Favorites</Text>
+        </View>
+    )
+}
+
+
+const NotFoundRestaurants = ()=>{
+    return (
+        <View style={{flex:1, alignItems:'center', justifyContent:'center'}}>
+            <Icon type='material-community' name='alert-outline' size={50}/>
+            <Text style={{fontSize:20, fontWeight:'bold'}}>No tienes restaurantes en tu lista</Text>
+        </View>
+    )
+}
+
+const UserNoLogged = ({navigation})=>{
+    return (
+        <View style={{flex:1, alignItems:'center', justifyContent:'center'}}>
+            <Icon type='material-community' name='alert-outline' size={50}/>
+            <Text style={{fontSize:20, fontWeight:'bold', textAlign:'center'}}>Necesitas estar logeado para ver esta sección</Text>
+            <Button 
+                title="Ir al login"
+                containerStyle={{marginTop:20,width:'80%'}}
+                buttonStyle={{backgroundColor:'#00a680'}}
+                onPress={()=>navigation.navigate("account", {screen:"login"})}
+            />
         </View>
     )
 }
