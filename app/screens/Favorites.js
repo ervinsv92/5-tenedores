@@ -5,17 +5,16 @@ import {useFocusEffect} from '@react-navigation/native';
 import {firebaseApp} from '../utils/firebase';
 import { getAuth} from 'firebase/auth';
 import { getFirestore, getDocs, collection, query, where, doc, getDoc, orderBy, limit, startAfter} from 'firebase/firestore';
-import Loading from '../components/Loading';
+import {Loading} from '../components/Loading';
 import Toast from 'react-native-easy-toast';
 
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
 export const Favorites = ({navigation}) => {
-
     const [restaurants, setRestaurants] = useState([]);
     const [userLogged, setUserLogged] = useState(false);
-    const tostRef = useRef();
+    const toastRef = useRef();
     const [isLoading, setIsLoading] = useState(false);
     const [reloadData, setReloadData] = useState(false)
 
@@ -42,6 +41,7 @@ export const Favorites = ({navigation}) => {
 
                         console.log("id favorites: ", idRestaurants)
                         const res = await getRestaurants(idRestaurants);
+                        console.log("final rest: ", res)
                         setRestaurants(res)
                         //console.log("favorites: ", restaurants)
                         //setTotalRestaurants(rest.length);
@@ -59,7 +59,7 @@ export const Favorites = ({navigation}) => {
 
     const getRestaurants = async (idRestaurants)=>{
         let listRestaurants= [];
-
+        console.log("id restaurants: ", idRestaurants)
         for(let id of idRestaurants){
             try {
                 console.log("Doc id: ", id)
@@ -68,7 +68,7 @@ export const Favorites = ({navigation}) => {
     
                 if(docSnap.exists()){
                     const data = docSnap.data();
-                    console.log("Data: ", data)
+                    console.log("Data -: ", data)
                     data.id = id;
                     listRestaurants.push(data)
                 }    
@@ -108,7 +108,7 @@ export const Favorites = ({navigation}) => {
                 )
             }
 
-            <Toast ref={tostRef} position='center' opacity={0.9}/>
+            <Toast ref={toastRef} position='center' opacity={0.9}/> 
             <Loading text="Eliminando restaurante" isVisible={isLoading}/>
         </View>
     )
